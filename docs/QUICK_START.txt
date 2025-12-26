@@ -1,0 +1,249 @@
+╔════════════════════════════════════════════════════════════════════════════╗
+║                                                                            ║
+║             BYZANTINE IDS - SURICATA INTEGRATION (OPTION C)                ║
+║                  Dual Log Monitoring: fast.log + eve.json                  ║
+║                                                                            ║
+║                         QUICK START GUIDE                                  ║
+║                                                                            ║
+╚════════════════════════════════════════════════════════════════════════════╝
+
+📦 PACKAGE CONTENTS
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Core Files:
+  ✓ suricata_detector.py          - Main detector with Byzantine integration
+  ✓ alert_dashboard.py            - Real-time visualization dashboard  
+  ✓ deploy_detector.sh            - Automated deployment script
+  ✓ validate_installation.py      - System validation tool
+
+Documentation:
+  ✓ README.md                     - Comprehensive usage guide
+  ✓ Suricata_Byzantine_Integration_Guide.docx - Complete documentation
+  ✓ QUICK_START.txt              - This file
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+🚀 INSTALLATION IN 3 STEPS
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+STEP 1: Copy Files to Detector Nodes
+────────────────────────────────────────────────────────────────────────────
+From your computer:
+
+  scp *.py *.sh pi@rp6:/home/pi/
+  scp *.py *.sh pi@rp7:/home/pi/
+  scp *.py *.sh pi@rp8:/home/pi/
+
+
+STEP 2: Deploy on Each Node  
+────────────────────────────────────────────────────────────────────────────
+On rp6, rp7, and rp8:
+
+  cd /home/pi
+  chmod +x deploy_detector.sh
+  ./deploy_detector.sh
+
+Follow prompts:
+  - Enter detector ID (rp6, rp7, or rp8)
+  - Enter coordinator IP
+  - Enter coordinator port (default: 5000)
+
+
+STEP 3: Validate Installation
+────────────────────────────────────────────────────────────────────────────
+On each node:
+
+  python3 validate_installation.py
+
+This checks:
+  ✓ Suricata installation
+  ✓ Log files exist
+  ✓ Rules loaded
+  ✓ Detector script configured
+  ✓ Service installed
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+✅ VERIFICATION
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Check Services:
+  sudo systemctl status suricata
+  sudo systemctl status byzantine-detector
+
+View Logs:
+  sudo tail -f /usr/local/var/log/suricata/fast.log
+  sudo journalctl -u byzantine-detector -f
+
+Launch Dashboard:
+  python3 alert_dashboard.py
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+🧪 TESTING
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Generate Test Traffic (from external machine):
+  nmap -sS -p 1-1000 192.168.1.100
+
+Expected Alerts:
+  🔍 ET SCAN Nmap TCP Scan
+  🔍 ET SCAN Nmap Scripting Engine
+  ⚠️  Multiple detection signatures
+
+You should see:
+  ✓ Alerts on all detector nodes
+  ✓ Byzantine consensus voting
+  ✓ Coordinated response actions
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+📊 ALERT DISPLAY FORMAT
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Each alert shows:
+  🚨 Severity Level (CRITICAL/HIGH/MEDIUM/LOW/INFO)
+  📍 Detector Node ID
+  ⏰ Timestamp
+  🏷️  Category (SCAN/DOS/EXPLOIT/MALWARE/etc)
+  📝 Signature Description
+  🔒 Classification
+  🎯 Rule ID (gid:sid:rev)
+  🌐 Protocol
+  📡 Source IP:Port
+  🎯 Destination IP:Port
+  📂 Data Source (fast.log or eve.json)
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+🎨 DASHBOARD FEATURES
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Real-time display of:
+  📊 Total alert count
+  📈 Severity breakdown with visual bars
+  🎯 Category distribution
+  🔝 Top 10 attack signatures
+  👤 Top attacker source IPs
+  🎯 Top target destination IPs
+  📡 Protocol statistics
+  ⏱️  Recent alert timeline
+
+Auto-refreshes every 5 seconds
+Perfect for presentations!
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+🛠️ COMMON COMMANDS
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Service Management:
+  sudo systemctl start byzantine-detector
+  sudo systemctl stop byzantine-detector
+  sudo systemctl restart byzantine-detector
+  sudo systemctl status byzantine-detector
+
+View Logs:
+  sudo journalctl -u byzantine-detector -f
+  sudo tail -f /usr/local/var/log/suricata/fast.log
+  sudo tail -f /usr/local/var/log/suricata/eve.json
+
+Suricata Control:
+  sudo systemctl start suricata
+  sudo systemctl stop suricata
+  sudo systemctl status suricata
+  sudo suricata -T                           # Test config
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+⚠️ TROUBLESHOOTING
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+No Alerts Appearing:
+  1. Check Suricata is running
+  2. Verify log files: ls /usr/local/var/log/suricata/
+  3. Test config: sudo suricata -T
+  4. Generate test traffic: nmap scan
+
+Cannot Connect to Coordinator:
+  1. Verify coordinator IP in suricata_detector.py
+  2. Test connectivity: ping <coordinator_ip>
+  3. Check firewall: sudo iptables -L
+
+High Memory Usage:
+  1. Verify low-memory config in suricata.yaml
+  2. Check detect-thread-ratio should be 0.2
+  3. Monitor: htop
+
+Service Won't Start:
+  1. Check logs: sudo journalctl -u byzantine-detector -xe
+  2. Verify Python3: python3 --version
+  3. Run validation: python3 validate_installation.py
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+📖 DOCUMENTATION
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+README.md
+  → Complete usage guide with examples
+
+Suricata_Byzantine_Integration_Guide.docx
+  → Full technical documentation
+  → Architecture details
+  → Configuration options
+  → Advanced troubleshooting
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+✨ KEY FEATURES
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+✓ Dual log monitoring (fast.log + eve.json)
+✓ Real-time Byzantine consensus integration
+✓ Presentation-ready alert formatting
+✓ Comprehensive dashboard visualization
+✓ 62,645+ detection rules (Emerging Threats)
+✓ Optimized for Raspberry Pi
+✓ Automated deployment
+✓ Service integration (systemd)
+✓ Color-coded severity levels
+✓ Automatic alert categorization
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+🎯 PERFECT FOR
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+✓ Research demonstrations
+✓ Academic presentations
+✓ Byzantine fault tolerance testing
+✓ Distributed IDS research
+✓ Attack pattern analysis
+✓ Performance evaluation
+✓ Security research papers
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+📞 SUPPORT
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Run validation script:
+  python3 validate_installation.py
+
+Check system status:
+  sudo systemctl status suricata
+  sudo systemctl status byzantine-detector
+
+View detailed logs:
+  sudo journalctl -u byzantine-detector -f
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Version: 1.0
+Last Updated: December 5, 2025
+Status: Production Ready ✅
+
+For complete details, see README.md and the Word document.
+
+═══════════════════════════════════════════════════════════════════════════════

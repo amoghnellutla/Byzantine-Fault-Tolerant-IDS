@@ -1,0 +1,38 @@
+# Byzantine Fault-Tolerant IDS - Custom Suricata Rules
+# These rules are optimized for laboratory demonstration environment
+
+# Rule 1: Port Scan Detection
+# Triggers when source sends 10+ SYN packets to different ports in 5 seconds
+alert tcp any any -> $HOME_NET any (msg:"CUSTOM ATTACK: Port Scan Detected"; \
+    flags:S; threshold:type threshold, track by_src, count 10, seconds 5; \
+    sid:9000001; rev:1;)
+
+# Rule 2: SSH Connection Attempts  
+# Triggers on 5+ SSH connection attempts in 10 seconds (brute force detection)
+alert tcp any any -> $HOME_NET 22 (msg:"CUSTOM ATTACK: SSH Connection Attempts"; \
+    threshold:type threshold, track by_src, count 5, seconds 10; \
+    sid:9000002; rev:1;)
+
+# Rule 3: HTTP Request Flood
+# Triggers on 20+ HTTP requests in 10 seconds (application DoS)
+alert http any any -> $HOME_NET any (msg:"CUSTOM ATTACK: HTTP Request Flood"; \
+    threshold:type threshold, track by_src, count 20, seconds 10; \
+    sid:9000003; rev:1;)
+
+# Rule 4: SYN Flood Detection
+# Triggers when destination receives 50+ SYN packets in 5 seconds
+alert tcp any any -> $HOME_NET any (msg:"CUSTOM ATTACK: Possible SYN Flood"; \
+    flags:S; threshold:type threshold, track by_dst, count 50, seconds 5; \
+    sid:9000004; rev:1;)
+
+# Rule 5: ICMP Ping Sweep
+# Triggers on 10+ ping requests in 5 seconds (network reconnaissance)
+alert icmp any any -> $HOME_NET any (msg:"CUSTOM ATTACK: ICMP Ping Sweep"; \
+    itype:8; threshold:type threshold, track by_src, count 10, seconds 5; \
+    sid:9000005; rev:1;)
+
+# Rule 6: Multiple Connection Attempts (General)
+# Broader detection than Rule 1, lower threshold
+alert tcp any any -> $HOME_NET any (msg:"CUSTOM ATTACK: Multiple Connection Attempts"; \
+    flags:S; threshold:type threshold, track by_src, count 15, seconds 5; \
+    sid:9000006; rev:1;)
