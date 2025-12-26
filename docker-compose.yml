@@ -1,0 +1,119 @@
+version: '3.8'
+
+services:
+  coordinator:
+    build: .
+    container_name: bft-coordinator
+    command: python3 src/coordinator.py
+    ports:
+      - "5000:5000"
+    networks:
+      - bft-network
+    volumes:
+      - ./logs:/var/log/bft-ids
+      - ./data:/app/data
+    environment:
+      - NODE_TYPE=coordinator
+      - THRESHOLD=2
+      - VOTE_WINDOW=20
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:5000/status"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  detector-node-1:
+    build: .
+    container_name: bft-detector-1
+    command: python3 src/detector_bft.py --node rp6
+    depends_on:
+      - coordinator
+    networks:
+      - bft-network
+    volumes:
+      - ./logs:/var/log/bft-ids
+      - /var/log/suricata:/var/log/suricata
+    environment:
+      - NODE_ID=rp6
+      - NODE_TYPE=honest
+      - COORDINATOR_URL=http://coordinator:5000
+    cap_add:
+      - NET_ADMIN
+      - NET_RAW
+
+  detector-node-2:
+    build: .
+    container_name: bft-detector-2
+    command: python3 src/detector_bft.py --node rp8
+    depends_on:
+      - coordinator
+    networks:
+      - bft-network
+    volumes:
+      - ./logs:/var/log/bft-ids
+      - /var/log/suricata:/var/log/suricata
+    environment:
+      - NODE_ID=rp8
+      - NODE_TYPE=honest
+      - COORDINATOR_URL=http://coordinator:5000
+    cap_add:
+      - NET_ADMIN
+      - NET_RAW
+
+  detector-node-3:
+    build: .
+    container_name: bft-detector-3
+    command: python3 src/detector_virtual.py --node rp7
+    depends_on:
+      - coordinator
+    networks:
+      - bft-network
+    volumes:
+      - ./logs:/var/log/bft-ids
+    environment:
+      - NODE_ID=rp7
+      - NODE_TYPE=byzantine
+      - COORDINATOR_URL=http://coordinator:5000
+      - FALSE_POSITIVE_RATE=0.3
+
+  dashboard:
+    build: .
+    container_name: bft-dashboard
+    command: python3 src/alert_dashboard.py
+    depends_on:
+      - coordinator
+    ports:
+      - "8080:8080"
+    networks:
+      - bft-network
+    volumes:
+      - ./logs:/var/log/bft-ids
+    environment:
+      - COORDINATOR_URL=http://coordinator:5000
+
+  attack-simulator:
+    build: .
+    container_name: bft-attacker
+    command: python3 demos/attack_simulator.py --continuous
+    depends_on:
+      - detector-node-1
+      - detector-node-2
+      - detector-node-3
+    networks:
+      - bft-network
+    environment:
+      - TARGET_NETWORK=172.20.0.0/16
+      - ATTACK_INTERVAL=60
+    profiles:
+      - demo
+
+networks:
+  bft-network:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 172.20.0.0/16
+
+volumes:
+  logs:
+  data:

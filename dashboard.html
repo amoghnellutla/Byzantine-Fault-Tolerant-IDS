@@ -1,0 +1,373 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Byzantine IDS - Live Attack Monitor</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.socket.io/4.5.4/socket.io.min.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', system-ui, sans-serif;
+            background: linear-gradient(135deg, #0f0c29, #302b63, #24243e);
+            color: #fff;
+            min-height: 100vh;
+            padding: 20px;
+        }
+        
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+            animation: glow 2s ease-in-out infinite alternate;
+        }
+        
+        @keyframes glow {
+            from { text-shadow: 0 0 10px #00ff88, 0 0 20px #00ff88; }
+            to { text-shadow: 0 0 20px #00ff88, 0 0 30px #00ff88; }
+        }
+        
+        .dashboard {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+        
+        .card {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border-radius: 15px;
+            padding: 20px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            transition: transform 0.3s, box-shadow 0.3s;
+        }
+        
+        .card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 40px rgba(0, 255, 136, 0.3);
+        }
+        
+        .metric {
+            font-size: 2.5em;
+            font-weight: bold;
+            color: #00ff88;
+            margin: 10px 0;
+        }
+        
+        .label {
+            color: #aaa;
+            font-size: 0.9em;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+        
+        .alert-list {
+            max-height: 300px;
+            overflow-y: auto;
+            margin-top: 10px;
+        }
+        
+        .alert-item {
+            background: rgba(255, 0, 0, 0.1);
+            border-left: 3px solid #ff4444;
+            padding: 10px;
+            margin: 5px 0;
+            border-radius: 5px;
+            animation: slideIn 0.5s ease-out;
+        }
+        
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateX(-20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateX(0);
+            }
+        }
+        
+        .status-indicator {
+            display: inline-block;
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            margin-right: 8px;
+            animation: pulse 2s infinite;
+        }
+        
+        .status-online { background: #00ff88; }
+        .status-warning { background: #ffaa00; }
+        .status-critical { background: #ff4444; }
+        
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+        
+        .node-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 10px;
+            margin-top: 15px;
+        }
+        
+        .node {
+            background: rgba(0, 255, 136, 0.1);
+            border: 1px solid #00ff88;
+            padding: 10px;
+            border-radius: 8px;
+            text-align: center;
+        }
+        
+        .node.byzantine {
+            background: rgba(255, 68, 68, 0.1);
+            border-color: #ff4444;
+        }
+        
+        .chart-container {
+            position: relative;
+            height: 250px;
+            margin-top: 20px;
+        }
+        
+        .cyber-grid {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            opacity: 0.03;
+            background-image: 
+                linear-gradient(0deg, #00ff88 1px, transparent 1px),
+                linear-gradient(90deg, #00ff88 1px, transparent 1px);
+            background-size: 50px 50px;
+            z-index: -1;
+        }
+    </style>
+</head>
+<body>
+    <div class="cyber-grid"></div>
+    
+    <div class="header">
+        <h1>🛡️ Byzantine Fault-Tolerant IDS</h1>
+        <p>Real-Time Attack Monitoring Dashboard</p>
+    </div>
+    
+    <div class="dashboard">
+        <!-- System Status -->
+        <div class="card">
+            <div class="label">System Status</div>
+            <div class="metric">
+                <span class="status-indicator status-online"></span>
+                ACTIVE
+            </div>
+            <div style="margin-top: 10px;">
+                <small>Uptime: <span id="uptime">0h 0m</span></small>
+            </div>
+        </div>
+        
+        <!-- Active Nodes -->
+        <div class="card">
+            <div class="label">Active Nodes</div>
+            <div class="metric" id="activeNodes">3/3</div>
+            <div class="node-grid">
+                <div class="node" id="node1">Node 1 ✓</div>
+                <div class="node" id="node2">Node 2 ✓</div>
+                <div class="node byzantine" id="node3">Node 3 ⚠</div>
+            </div>
+        </div>
+        
+        <!-- Consensus Rate -->
+        <div class="card">
+            <div class="label">Consensus Rate</div>
+            <div class="metric" id="consensusRate">97.3%</div>
+            <div style="margin-top: 10px;">
+                <small>Last 24 hours</small>
+            </div>
+        </div>
+        
+        <!-- Threats Detected -->
+        <div class="card">
+            <div class="label">Threats Detected</div>
+            <div class="metric" id="threatCount">0</div>
+            <div style="margin-top: 10px;">
+                <small>Today: <span id="todayThreats">0</span></small>
+            </div>
+        </div>
+        
+        <!-- Attack Timeline -->
+        <div class="card" style="grid-column: span 2;">
+            <div class="label">Attack Detection Timeline</div>
+            <div class="chart-container">
+                <canvas id="attackChart"></canvas>
+            </div>
+        </div>
+        
+        <!-- Recent Alerts -->
+        <div class="card">
+            <div class="label">Recent Alerts</div>
+            <div class="alert-list" id="alertList">
+                <div class="alert-item">System initialized...</div>
+            </div>
+        </div>
+        
+        <!-- Attack Types Distribution -->
+        <div class="card">
+            <div class="label">Attack Types (24h)</div>
+            <div class="chart-container">
+                <canvas id="attackTypesChart"></canvas>
+            </div>
+        </div>
+        
+        <!-- Performance Metrics -->
+        <div class="card">
+            <div class="label">Performance</div>
+            <div style="margin-top: 15px;">
+                <div>Detection Time: <strong id="detectionTime">247ms</strong></div>
+                <div>False Positives: <strong id="falsePositives">2.1%</strong></div>
+                <div>Packets/sec: <strong id="packetsPerSec">1,247</strong></div>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        // Initialize Charts
+        const ctx1 = document.getElementById('attackChart').getContext('2d');
+        const attackChart = new Chart(ctx1, {
+            type: 'line',
+            data: {
+                labels: ['00:00', '04:00', '08:00', '12:00', '16:00', '20:00'],
+                datasets: [{
+                    label: 'Attacks Detected',
+                    data: [2, 5, 3, 8, 12, 7],
+                    borderColor: '#00ff88',
+                    backgroundColor: 'rgba(0, 255, 136, 0.1)',
+                    tension: 0.4
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: { display: false }
+                },
+                scales: {
+                    y: { 
+                        beginAtZero: true,
+                        grid: { color: 'rgba(255, 255, 255, 0.1)' },
+                        ticks: { color: '#aaa' }
+                    },
+                    x: {
+                        grid: { color: 'rgba(255, 255, 255, 0.1)' },
+                        ticks: { color: '#aaa' }
+                    }
+                }
+            }
+        });
+        
+        const ctx2 = document.getElementById('attackTypesChart').getContext('2d');
+        const attackTypesChart = new Chart(ctx2, {
+            type: 'doughnut',
+            data: {
+                labels: ['Port Scan', 'DDoS', 'Brute Force', 'Malware', 'Other'],
+                datasets: [{
+                    data: [30, 25, 20, 15, 10],
+                    backgroundColor: [
+                        '#00ff88',
+                        '#ff4444',
+                        '#ffaa00',
+                        '#00aaff',
+                        '#ff00aa'
+                    ]
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        position: 'bottom',
+                        labels: { color: '#aaa' }
+                    }
+                }
+            }
+        });
+        
+        // Simulate real-time updates
+        let threatCounter = 0;
+        let todayCounter = 0;
+        let uptime = 0;
+        
+        function updateMetrics() {
+            // Update uptime
+            uptime += 1;
+            const hours = Math.floor(uptime / 60);
+            const minutes = uptime % 60;
+            document.getElementById('uptime').textContent = `${hours}h ${minutes}m`;
+            
+            // Randomly update metrics
+            if (Math.random() > 0.7) {
+                threatCounter++;
+                todayCounter++;
+                document.getElementById('threatCount').textContent = threatCounter;
+                document.getElementById('todayThreats').textContent = todayCounter;
+                
+                // Add new alert
+                const alerts = [
+                    'Port scan detected from 192.168.1.100',
+                    'SSH brute force attempt blocked',
+                    'DDoS pattern identified',
+                    'Suspicious packet from unknown source',
+                    'Malware C&C communication blocked'
+                ];
+                
+                const alertList = document.getElementById('alertList');
+                const newAlert = document.createElement('div');
+                newAlert.className = 'alert-item';
+                newAlert.textContent = `[${new Date().toLocaleTimeString()}] ${alerts[Math.floor(Math.random() * alerts.length)]}`;
+                alertList.insertBefore(newAlert, alertList.firstChild);
+                
+                // Keep only last 5 alerts
+                while (alertList.children.length > 5) {
+                    alertList.removeChild(alertList.lastChild);
+                }
+            }
+            
+            // Update performance metrics
+            document.getElementById('detectionTime').textContent = 
+                `${Math.floor(200 + Math.random() * 100)}ms`;
+            document.getElementById('packetsPerSec').textContent = 
+                `${Math.floor(1000 + Math.random() * 500).toLocaleString()}`;
+        }
+        
+        // Update every 60 seconds
+        setInterval(updateMetrics, 60000);
+        
+        // Initial update
+        updateMetrics();
+        
+        // Simulate node status changes
+        setInterval(() => {
+            const nodes = ['node1', 'node2', 'node3'];
+            nodes.forEach(nodeId => {
+                const node = document.getElementById(nodeId);
+                if (Math.random() > 0.95 && nodeId !== 'node3') {
+                    node.style.opacity = '0.5';
+                    setTimeout(() => {
+                        node.style.opacity = '1';
+                    }, 2000);
+                }
+            });
+        }, 5000);
+    </script>
+</body>
+</html>
