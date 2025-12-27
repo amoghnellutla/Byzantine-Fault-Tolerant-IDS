@@ -247,8 +247,7 @@ def byzantine_consensus(votes, threshold=0.67):
 
 ### Live Demo
 Watch our system in action detecting and mitigating real attacks:
-- [Video Demo](https://amoghnellutla.github.io/Byzantine-Fault-Tolerant-IDS/dashboard.html)
-- [Live Demo Script](./demos/demo_script.pdf)
+- [Demo](https://amoghnellutla.github.io/Byzantine-Fault-Tolerant-IDS/dashboard.html)
 
 ### Running the Demo
 ```bash
@@ -287,7 +286,7 @@ We welcome contributions! Please see our [Contributing Guidelines](CONTRIBUTING.
 ## 🏅 Achievements & Recognition
 
 - 🏆 **Best Security Research Project** - University Research Symposium 2025
-  
+
 ## 🔮 Future Enhancements
 
 - [ ] Machine Learning integration for adaptive threat detection
@@ -301,10 +300,10 @@ We welcome contributions! Please see our [Contributing Guidelines](CONTRIBUTING.
 
 ## 📧 Contact & Support
 
-**Author**: Amogh  
-**Institution**: Montclair state University  
-**Email**: Nellutlaamg@gmail.com  
-**LinkedIn**: www.linkedin.com/in/amogh-nellutla 
+**Author**: Amogh Nellutla
+**Institution**: Montclair State University  
+**Email**: Nellutlaamg@gmail.com
+**LinkedIn**: [www.linkedin.com/in/amogh-nellutla
 
 ### Get Help
 - 📖 Check the [Documentation](./docs/)
